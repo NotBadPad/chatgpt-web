@@ -17,6 +17,8 @@ type Configuration struct {
 	ApiKey string `json:"api_key"`
 	// 服务端口
 	Port int `json:"port"`
+	// 监听接口
+	Listen string `json:"listen"`
 	// AI特征
 	BotDesc string `json:"bot_desc"`
 	// 代理
@@ -44,6 +46,7 @@ func LoadConfig() *Configuration {
 		config = &Configuration{
 			MaxTokens:        60,
 			Port:             8080,
+			Listen:           "",
 			Model:            "gpt-3.5-turbo-0301",
 			Temperature:      0.9,
 			TopP:             1,
@@ -52,9 +55,9 @@ func LoadConfig() *Configuration {
 		}
 
 		// 判断配置文件是否存在，存在直接JSON读取
-		_, err := os.Stat("config.json")
+		_, err := os.Stat(CLI.Config)
 		if err == nil {
-			f, err := os.Open("config.json")
+			f, err := os.Open(CLI.Config)
 			if err != nil {
 				log.Fatalf("open config err: %v", err)
 				return

@@ -12,8 +12,9 @@ import '@chatui/core/es/styles/index.less'
 import { useState } from 'react'
 import './chatui-theme.css'
 import axios from 'axios'
-import ReactMarkdown from 'react-markdown'
 import clipboardy from 'clipboardy'
+import MdEditor from "md-editor-rt"
+import "md-editor-rt/lib/style.css"
 
 const defaultQuickReplies = [
   {
@@ -32,7 +33,7 @@ const initialMessages = [
   {
     type: 'text',
     content: {
-      text: '您好，我是AI助理，开源于：https://github.com/869413421/chatgpt-web。',
+      text: '您好，我是AI助理',
     },
     user: { avatar: '//gitclone.com/download1/gitclone.png' },
   },
@@ -41,8 +42,16 @@ const initialMessages = [
 let chatContext: any[] = []
 
 function App() {
-  const { messages, appendMsg, setTyping } = useMessages(initialMessages)
+  const { messages, appendMsg, setTyping, prependMsgs } = useMessages(initialMessages)
   const [percentage, setPercentage] = useState(0)
+
+  const handleFocus = () => {
+    setTimeout(() => {
+      window.scrollTo(0, document.body.scrollHeight)
+
+    }, 10)
+  }
+
 
   // clearQuestion 清空文本特殊字符
   function clearQuestion(requestText: string) {
@@ -88,9 +97,11 @@ function App() {
       case 'text':
         let text = content.text
         return (
-          <Bubble>
-            <ReactMarkdown children={text} />
-          </Bubble>
+            <Bubble><MdEditor
+                style={{float: 'left'}}
+                modelValue = { text } // 要展示的markdown字符串
+                previewOnly = { true } // 只展示预览框部分
+             ></MdEditor></Bubble>
         )
       default:
         return null
@@ -99,7 +110,10 @@ function App() {
 
   async function handleQuickReplyClick(item: { name: string }) {
     if (item.name === '清空会话') {
-      window.location.reload()
+
+      chatContext.splice(0)
+      messages.splice(0)
+      prependMsgs(messages)
     }
     if (item.name === '复制会话') {
       if (messages.length <= 1) {
@@ -124,7 +138,7 @@ function App() {
     })
 
     let url = 'completion'
-    // url = "http://127.0.0.1:8080/completion"
+
     axios
       .post(url, {
         messages: chatContext,
@@ -171,6 +185,7 @@ function App() {
         quickReplies={defaultQuickReplies}
         onQuickReplyClick={handleQuickReplyClick}
         onSend={handleSend}
+        onInputFocus={handleFocus}
       />
       <Progress value={percentage} />
     </div>
